@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瞒天过海：渡海奇袭 - 三十六计第一计加强版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部状态栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .alert-meter {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .alert-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .alert-bar {
+            height: 25px;
+            background: linear-gradient(to right, #ff0000 0%, #ffff00 50%, #00ff00 100%);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .alert-fill {
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            transition: width 0.3s ease;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .alert-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-size: 14px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        /* 主游戏区域 */
+        .game-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 左侧资源栏 */
+        .resource-panel {
+            width: 120px;
+            padding: 20px 10px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .resource-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .resource-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* 右侧信息栏 */
+        .info-panel {
+            width: 120px;
+            padding: 20px 10px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .level-info {
+            text-align: center;
+        }
+
+        .level-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+
+        .score-info {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+
+        /* 游戏画布区域 */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* 底部控制栏 */
+        .control-bar {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            z-index: 100;
+        }
+
+        .game-btn {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #ffd700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 150px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .game-btn:active {
+            transform: translateY(0);
+        }
+
+        .game-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-btn.cooldown {
+            position: relative;
+        }
+
+        .game-btn.cooldown::after {
+            content: attr(data-cooldown);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 3px solid #ffd700;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-text {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* 特效样式 */
+        .fog-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(200, 200, 200, 0.3);
+            backdrop-filter: blur(5px);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 50;
+        }
+
+        .fog-effect.active {
+            opacity: 1;
+        }
+
+        .suspicion-flash {
+            animation: flashRed 0.5s;
+        }
+
+        @keyframes flashRed {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.5) hue-rotate(0deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .alert-meter {
+                min-width: 150px;
+            }
+
+            .resource-panel, .info-panel {
+                width: 80px;
+                padding: 10px 5px;
+            }
+
+            .resource-value, .level-number {
+                font-size: 20px;
+            }
+
+            .game-btn {
+                padding: 20px 25px;
+                font-size: 18px;
+                min-width: 140px;
+                touch-action: manipulation;
+            }
+
+            .control-bar {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                max-width: 95%;
+            }
+
+            .modal-title {
+                font-size: 22px;
+            }
+
+            .modal-text {
+                font-size: 14px;
+            }
+        }
+
+        /* 粒子效果容器 */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* 消息提示 */
+        .message-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            border: 2px solid;
+        }
+
+        .message-toast.show {
+            opacity: 1;
+        }
+
+        .message-toast.success {
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .message-toast.warning {
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        .message-toast.error {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部状态栏 -->
+    <div class="top-bar">
+        <div class="alert-meter">
+            <div class="alert-label">
+                <span>警惕度</span>
+                <span id="alertValue">100%</span>
+            </div>
+            <div class="alert-bar">
+                <div class="alert-fill" id="alertFill" style="width: 0%;"></div>
+                <div class="alert-value" id="alertText">100%</div>
+            </div>
+        </div>
+        <div class="stats">
+            <div class="stat-item">
+                <span>伪装次数</span>
+                <span class="stat-value" id="disguiseCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span>剩余时间</span>
+                <span class="stat-value" id="timeLeft">60</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主游戏区域 -->
+    <div class="game-container">
+        <!-- 左侧资源栏 -->
+        <div class="resource-panel">
+            <div class="resource-title">资源</div>
+            <div class="resource-value" id="resourceValue">10</div>
+        </div>
+
+        <!-- 游戏画布 -->
+        <div class="canvas-area">
+            <canvas id="gameCanvas"></canvas>
+            <div class="fog-effect" id="fogEffect"></div>
+            <div class="particles" id="particles"></div>
+        </div>
+
+        <!-- 右侧信息栏 -->
+        <div class="info-panel">
+            <div class="level-info">
+                <div>关卡</div>
+                <div class="level-number" id="levelNumber">1</div>
+            </div>
+            <div class="score-info">
+                <div>分数</div>
+                <div class="score-value" id="scoreValue">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部控制栏 -->
+    <div class="control-bar">
+        <button class="game-btn" id="normalShipBtn">派平常船 (伪装)<br>成本: 1资源</button>
+        <button class="game-btn" id="armyShipBtn">派军队船 (奇袭)</button>
+        <button class="game-btn" id="fogBtn">使用道具 (雾天)<br>成本: 3资源</button>
+    </div>
+
+    <!-- 教程弹窗 -->
+    <div class="modal" id="tutorialModal">
+        <div class="modal-content">
+            <div class="modal-title">瞒天过海：渡海奇袭</div>
+            <div class="modal-text">
+                <p><strong>游戏目标：</strong>通过伪装降低敌人警惕度，然后发动奇袭！</p>
+                <p><strong>游戏规则：</strong></p>
+                <ul>
+                    <li>派平常船：降低15%警惕度，但20%概率被怀疑（+10%警惕）</li>
+                    <li>派军队船：当警惕度足够低时发动奇袭</li>
+                    <li>使用道具：雾天可立即降低20%警惕度（冷却20秒）</li>
+                    <li>不操作时，每5秒警惕度自动恢复5%</li>
+                    <li>资源耗尽或时间归零则游戏结束</li>
+                </ul>
+                <p><strong>关卡要求：</strong></p>
+                <ul>
+                    <li>关卡1：伪装≥3次，警惕≤30%</li>
+                    <li>关卡2：伪装≥5次，警惕≤20%</li>
+                    <li>关卡3：伪装≥7次，警惕≤10%</li>
+                    <li>关卡4-5：增加随机事件</li>
+                </ul>
+                <p><strong>提示：</strong>把握时机，在警惕度足够低时再发动奇袭！</p>
+            </div>
+            <button class="modal-btn" id="startGameBtn">开始游戏</button>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div class="message-toast" id="messageToast"></div>
+
+    <!-- 游戏结束弹窗 -->
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <div class="modal-title" id="gameOverTitle">游戏结束</div>
+            <div class="modal-text" id="gameOverText"></div>
+            <div id="shareText" style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; display: none;">
+                <strong>分享你的分数：</strong><br>
+                <span id="shareContent"></span>
+            </div>
+            <button class="modal-btn" id="restartBtn">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            alert: 100,           // 警惕度 (0-100)
+            resource: 10,         // 资源
+            time: 60,             // 剩余时间（秒）
+            disguiseCount: 0,     // 伪装次数
+            level: 1,             // 当前关卡
+            score: 0,             // 分数
+            fogCooldown: 0,       // 雾天冷却
+            lastAutoRecover: 0,   // 上次自动恢复时间
+            gameRunning: false,   // 游戏运行状态
+            ships: [],            // 船只数组
+            enemyShips: [],      // 敌船数组
+            particles: []        // 粒子数组
+        };
+
+        // 关卡配置
+        const levelConfig = {
+            1: { minDisguise: 3, maxAlert: 30 },
+            2: { minDisguise: 5, maxAlert: 20 },
+            3: { minDisguise: 7, maxAlert: 10 },
+            4: { minDisguise: 9, maxAlert: 10 },
+            5: { minDisguise: 11, maxAlert: 10 }
+        };
+
+        // Canvas 和上下文
+        let canvas, ctx;
+        let animationId;
+
+        // 初始化
+        function init() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // 绑定按钮事件
+            document.getElementById('normalShipBtn').addEventListener('click', sendNormalShip);
+            document.getElementById('armyShipBtn').addEventListener('click', sendArmyShip);
+            document.getElementById('fogBtn').addEventListener('click', useFog);
+            document.getElementById('startGameBtn').addEventListener('click', startGame);
+            document.getElementById('restartBtn').addEventListener('click', restartGame);
+
+            // 显示教程
+            document.getElementById('tutorialModal').classList.add('active');
+
+            // 初始化敌船
+            initEnemyShips();
+
+            // 开始动画循环
+            animate();
+        }
+
+        // 调整画布大小
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawBackground();
+        }
+
+        // 初始化敌船
+        function initEnemyShips() {
+            gameState.enemyShips = [];
+            const shipCount = 3 + Math.floor(Math.random() * 3); // 3-5艘
+            for (let i = 0; i < shipCount; i++) {
+                gameState.enemyShips.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height * 0.3 + Math.random() * (canvas.height * 0.2),
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    size: 20 + Math.random() * 10,
+                    color: '#8B4513'
+                });
+            }
+        }
+
+        // 开始游戏
+        function startGame() {
+            document.getElementById('tutorialModal').classList.remove('active');
+            gameState.gameRunning = true;
+            gameState.alert = 100;
+            gameState.resource = 10;
+            gameState.time = 60;
+            gameState.disguiseCount = 0;
+            gameState.level = 1;
+            gameState.score = 0;
+            gameState.fogCooldown = 0;
+            gameState.lastAutoRecover = Date.now();
+            gameState.ships = [];
+            gameState.particles = [];
+            gameState.windEffect = false;
+            
+            updateUI();
+            playSound('start');
+        }
+
+        // 重新开始
+        function restartGame() {
+            document.getElementById('gameOverModal').classList.remove('active');
+            startGame();
+        }
+
+        // 派平常船
+        function sendNormalShip() {
+            if (!gameState.gameRunning || gameState.resource < 1) {
+                playSound('error');
+                return;
+            }
+
+            gameState.resource -= 1;
+            gameState.disguiseCount++;
+            
+            // 降低警惕度（考虑风向效果）
+            let alertReduction = 15;
+            if (gameState.windEffect) {
+                alertReduction = Math.floor(alertReduction / 2); // 效果减半
+                gameState.windEffect = false; // 清除效果
+                showMessage('风向不利，伪装效果减半', 'warning');
+            }
+            gameState.alert = Math.max(0, gameState.alert - alertReduction);
+            
+            // 20%概率被怀疑
+            if (Math.random() < 0.2) {
+                gameState.alert = Math.min(100, gameState.alert + 10);
+                showMessage('敌人怀疑！警惕度上升10%', 'warning');
+                playSound('alert');
+                // 敌船闪红
+                document.getElementById('gameCanvas').classList.add('suspicion-flash');
+                setTimeout(() => {
+                    document.getElementById('gameCanvas').classList.remove('suspicion-flash');
+                }, 500);
+            } else {
+                playSound('water');
+            }
+
+            // 创建船只
+            createShip('normal');
+            updateUI();
+        }
+
+        // 派军队船（奇袭）
+        function sendArmyShip() {
+            if (!gameState.gameRunning) {
+                playSound('error');
+                return;
+            }
+
+            const config = levelConfig[gameState.level];
+            const minDisguise = config.minDisguise;
+            const maxAlert = config.maxAlert;
+
+            if (gameState.disguiseCount < minDisguise) {
+                showMessage(`需要至少伪装${minDisguise}次！`, 'error');
+                playSound('error');
+                return;
+            }
+
+            if (gameState.alert > maxAlert) {
+                // 奇袭失败
+                gameState.resource = Math.max(0, gameState.resource - 2);
+                showMessage('警惕度太高！奇袭失败，敌人警觉！', 'error');
+                playSound('fail');
+                resetLevel();
+                updateUI();
+                return;
+            }
+
+            // 奇袭成功
+            playSound('success');
+            createExplosion(canvas.width * 0.8, canvas.height * 0.2);
+            
+            // 计算得分
+            const points = 60 - gameState.disguiseCount * 2;
+            gameState.score += points;
+            
+            showMessage(`奇袭成功！得分：${points}`, 'success');
+            
+            // 进入下一关
+            setTimeout(() => {
+                if (gameState.level < 5) {
+                    gameState.level++;
+                    gameState.alert = 100;
+                    gameState.disguiseCount = 0;
+                    gameState.time += 30; // 奖励时间
+                    
+                    // 奖励资源：根据关卡难度给予不同奖励
+                    const resourceReward = gameState.level <= 2 ? 8 : (gameState.level <= 4 ? 10 : 12);
+                    gameState.resource += resourceReward;
+                    
+                    showMessage(`进入关卡 ${gameState.level}！奖励资源：+${resourceReward}`, 'success');
+                    
+                    // 关卡4-5随机事件
+                    if (gameState.level >= 4) {
+                        triggerRandomEvent();
+                    }
+                } else {
+                    // 游戏胜利
+                    endGame(true);
+                }
+                updateUI();
+            }, 2000);
+        }
+
+        // 使用道具（雾天）
+        function useFog() {
+            if (!gameState.gameRunning || gameState.resource < 3 || gameState.fogCooldown > 0) {
+                playSound('error');
+                return;
+            }
+
+            gameState.resource -= 3;
+            gameState.alert = Math.max(0, gameState.alert - 20);
+            gameState.fogCooldown = 20;
+
+            // 雾天效果
+            const fogEffect = document.getElementById('fogEffect');
+            fogEffect.classList.add('active');
+            setTimeout(() => {
+                fogEffect.classList.remove('active');
+            }, 3000);
+
+            playSound('fog');
+            updateUI();
+        }
+
+        // 随机事件（关卡4-5）
+        function triggerRandomEvent() {
+            const events = [
+                {
+                    name: '间谍',
+                    effect: () => {
+                        gameState.alert = Math.min(100, gameState.alert + 15);
+                        showMessage('发现间谍！警惕度上升15%', 'warning');
+                    }
+                },
+                {
+                    name: '风向',
+                    effect: () => {
+                        showMessage('风向不利！下次伪装效果减半', 'warning');
+                        // 标记下次伪装效果减半
+                        gameState.windEffect = true;
+                    }
+                }
+            ];
+
+            const event = events[Math.floor(Math.random() * events.length)];
+            setTimeout(() => {
+                event.effect();
+                updateUI();
+            }, 1000);
+        }
+
+        // 重置关卡
+        function resetLevel() {
+            gameState.alert = 100;
+            gameState.disguiseCount = 0;
+            gameState.ships = [];
+            gameState.windEffect = false;
+        }
+
+        // 创建船只
+        function createShip(type) {
+            gameState.ships.push({
+                x: 50,
+                y: canvas.height * 0.6 + Math.random() * 100,
+                vx: 2 + Math.random() * 1,
+                type: type,
+                size: type === 'normal' ? 15 : 20,
+                color: type === 'normal' ? '#4682B4' : '#8B0000'
+            });
+        }
+
+        // 创建爆炸效果
+        function createExplosion(x, y) {
+            for (let i = 0; i < 50; i++) {
+                gameState.particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 30,
+                    size: 3 + Math.random() * 3,
+                    color: `hsl(${Math.random() * 60}, 100%, 50%)`
+                });
+            }
+        }
+
+        // 游戏循环
+        function gameLoop() {
+            if (!gameState.gameRunning) return;
+
+            const now = Date.now();
+
+            // 时间倒计时
+            if (now - gameState.lastAutoRecover >= 1000) {
+                gameState.time = Math.max(0, gameState.time - 1);
+                gameState.lastAutoRecover = now;
+
+                // 每5秒自动恢复警惕度
+                if (gameState.time % 5 === 0 && gameState.time > 0) {
+                    gameState.alert = Math.min(100, gameState.alert + 5);
+                }
+
+                // 冷却倒计时
+                if (gameState.fogCooldown > 0) {
+                    gameState.fogCooldown--;
+                }
+
+                // 检查游戏结束
+                if (gameState.time <= 0 || gameState.resource <= 0) {
+                    endGame(false);
+                    return;
+                }
+
+                updateUI();
+            }
+        }
+
+        // 更新UI
+        function updateUI() {
+            // 更新警惕度
+            const alertPercent = Math.round(gameState.alert);
+            document.getElementById('alertValue').textContent = alertPercent + '%';
+            document.getElementById('alertText').textContent = alertPercent + '%';
+            document.getElementById('alertFill').style.width = alertPercent + '%';
+
+            // 更新资源
+            document.getElementById('resourceValue').textContent = gameState.resource;
+
+            // 更新伪装次数
+            document.getElementById('disguiseCount').textContent = gameState.disguiseCount;
+
+            // 更新时间
+            document.getElementById('timeLeft').textContent = gameState.time;
+
+            // 更新关卡
+            document.getElementById('levelNumber').textContent = gameState.level;
+
+            // 更新分数
+            document.getElementById('scoreValue').textContent = gameState.score;
+
+            // 更新按钮状态
+            const fogBtn = document.getElementById('fogBtn');
+            if (gameState.fogCooldown > 0) {
+                fogBtn.disabled = true;
+                fogBtn.classList.add('cooldown');
+                fogBtn.setAttribute('data-cooldown', gameState.fogCooldown);
+            } else {
+                fogBtn.disabled = gameState.resource < 3;
+                fogBtn.classList.remove('cooldown');
+            }
+
+            document.getElementById('normalShipBtn').disabled = gameState.resource < 1;
+        }
+
+        // 绘制背景
+        function drawBackground() {
+            // 天空渐变
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.6);
+            skyGradient.addColorStop(0, '#1a1a2e');
+            skyGradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height * 0.6);
+
+            // 海面
+            const seaGradient = ctx.createLinearGradient(0, canvas.height * 0.6, 0, canvas.height);
+            seaGradient.addColorStop(0, '#0f3460');
+            seaGradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = seaGradient;
+            ctx.fillRect(0, canvas.height * 0.6, canvas.width, canvas.height * 0.4);
+
+            // 绘制波浪
+            drawWaves();
+
+            // 绘制对岸城堡
+            drawCastle();
+
+            // 绘制月亮
+            drawMoon();
+        }
+
+        // 绘制波浪
+        let waveOffset = 0;
+        function drawWaves() {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const seaLevel = canvas.height * 0.6;
+            for (let x = 0; x < canvas.width; x += 5) {
+                const y = seaLevel + Math.sin((x + waveOffset) * 0.02) * 10 + 
+                         Math.sin((x + waveOffset) * 0.05) * 5;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            waveOffset += 2;
+        }
+
+        // 绘制城堡
+        function drawCastle() {
+            const castleX = canvas.width * 0.8;
+            const castleY = canvas.height * 0.2;
+            const castleWidth = 80;
+            const castleHeight = 100;
+
+            ctx.fillStyle = '#4a4a4a';
+            // 主塔
+            ctx.fillRect(castleX, castleY, castleWidth, castleHeight);
+            
+            // 塔顶
+            ctx.beginPath();
+            ctx.moveTo(castleX - 10, castleY);
+            ctx.lineTo(castleX + castleWidth / 2, castleY - 30);
+            ctx.lineTo(castleX + castleWidth + 10, castleY);
+            ctx.closePath();
+            ctx.fill();
+
+            // 窗户
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(castleX + 20, castleY + 30, 15, 20);
+            ctx.fillRect(castleX + 45, castleY + 30, 15, 20);
+
+            // 门
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(castleX + 30, castleY + 70, 20, 30);
+        }
+
+        // 绘制月亮
+        function drawMoon() {
+            ctx.fillStyle = 'rgba(255, 255, 200, 0.8)';
+            ctx.beginPath();
+            ctx.arc(canvas.width * 0.1, canvas.height * 0.15, 30, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 绘制船只
+        function drawShip(ship) {
+            ctx.save();
+            ctx.translate(ship.x, ship.y);
+
+            // 船体
+            ctx.fillStyle = ship.color;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-ship.size, ship.size);
+            ctx.lineTo(ship.size, ship.size);
+            ctx.closePath();
+            ctx.fill();
+
+            // 如果是战船，添加旗帜
+            if (ship.type === 'army') {
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(ship.size * 0.5, -ship.size * 0.8, 3, ship.size * 0.6);
+            }
+
+            ctx.restore();
+        }
+
+        // 绘制敌船
+        function drawEnemyShip(ship) {
+            ctx.save();
+            ctx.translate(ship.x, ship.y);
+
+            ctx.fillStyle = ship.color;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-ship.size, ship.size);
+            ctx.lineTo(ship.size, ship.size);
+            ctx.closePath();
+            ctx.fill();
+
+            // 巡逻灯
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(ship.size * 0.7, -ship.size * 0.5, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // 绘制粒子
+        function drawParticle(particle) {
+            ctx.fillStyle = particle.color;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 动画循环
+        function animate() {
+            gameLoop();
+            
+            // 清空画布
+            drawBackground();
+
+            // 更新并绘制敌船
+            gameState.enemyShips.forEach(ship => {
+                ship.x += ship.vx;
+                ship.y += ship.vy;
+
+                // 边界反弹
+                if (ship.x < 0 || ship.x > canvas.width) ship.vx *= -1;
+                if (ship.y < canvas.height * 0.3 || ship.y > canvas.height * 0.5) ship.vy *= -1;
+
+                drawEnemyShip(ship);
+            });
+
+            // 更新并绘制玩家船只
+            gameState.ships = gameState.ships.filter(ship => {
+                ship.x += ship.vx;
+                drawShip(ship);
+                return ship.x < canvas.width + 50;
+            });
+
+            // 更新并绘制粒子
+            gameState.particles = gameState.particles.filter(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life--;
+                particle.size *= 0.98;
+                drawParticle(particle);
+                return particle.life > 0;
+            });
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // 结束游戏
+        function endGame(victory) {
+            gameState.gameRunning = false;
+            const modal = document.getElementById('gameOverModal');
+            const title = document.getElementById('gameOverTitle');
+            const text = document.getElementById('gameOverText');
+            const shareText = document.getElementById('shareText');
+            const shareContent = document.getElementById('shareContent');
+
+            if (victory && gameState.score > 100) {
+                title.textContent = '完美胜利！';
+                text.innerHTML = `
+                    <p style="font-size: 20px; color: #ffd700; margin-bottom: 15px;">恭喜你完成了所有关卡！</p>
+                    <p><strong>最终分数：${gameState.score}</strong></p>
+                    <p style="margin-top: 20px;"><strong>三十六计第一计：瞒天过海</strong></p>
+                    <p style="text-align: left; margin-top: 15px;">
+                        瞒天过海是三十六计中的第一计，意思是故意制造假象，掩盖真实意图，使敌人放松警惕。
+                        在游戏中，你需要通过伪装（派平常船）来降低敌人的警惕度，然后抓住时机发动奇袭。
+                        这体现了"示假隐真"的军事智慧。
+                    </p>
+                `;
+                playSound('victory');
+                createFireworks();
+            } else if (victory) {
+                title.textContent = '胜利！';
+                text.innerHTML = `
+                    <p>恭喜你完成了所有关卡！</p>
+                    <p><strong>最终分数：${gameState.score}</strong></p>
+                    <p>虽然完成了关卡，但分数未达到完美标准（100分）。</p>
+                `;
+                playSound('success');
+            } else {
+                title.textContent = '游戏结束';
+                let reason = '';
+                if (gameState.resource <= 0) {
+                    reason = '资源耗尽，敌人警觉！';
+                } else if (gameState.time <= 0) {
+                    reason = '时间耗尽！';
+                }
+                text.innerHTML = `
+                    <p>${reason}</p>
+                    <p><strong>最终分数：${gameState.score}</strong></p>
+                    <p><strong>完成关卡：${gameState.level - 1}/5</strong></p>
+                `;
+                playSound('fail');
+            }
+
+            // 显示分享文本
+            shareText.style.display = 'block';
+            shareContent.textContent = `我的瞒天过海分数：${gameState.score}`;
+
+            modal.classList.add('active');
+        }
+
+        // 创建烟花效果
+        function createFireworks() {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height * 0.5;
+                    createExplosion(x, y);
+                }, i * 200);
+            }
+        }
+
+        // 显示消息
+        function showMessage(msg, type) {
+            const toast = document.getElementById('messageToast');
+            toast.textContent = msg;
+            toast.className = `message-toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // 音效
+        function playSound(type) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            let frequency, duration, type_osc;
+
+            switch(type) {
+                case 'water':
+                    frequency = 200;
+                    duration = 0.1;
+                    type_osc = 'sine';
+                    break;
+                case 'alert':
+                    frequency = 800;
+                    duration = 0.2;
+                    type_osc = 'square';
+                    break;
+                case 'success':
+                    frequency = 600;
+                    duration = 0.3;
+                    type_osc = 'sine';
+                    break;
+                case 'fail':
+                    frequency = 200;
+                    duration = 0.5;
+                    type_osc = 'sawtooth';
+                    break;
+                case 'victory':
+                    frequency = 523;
+                    duration = 0.5;
+                    type_osc = 'sine';
+                    break;
+                case 'fog':
+                    frequency = 300;
+                    duration = 0.2;
+                    type_osc = 'triangle';
+                    break;
+                case 'start':
+                    frequency = 400;
+                    duration = 0.2;
+                    type_osc = 'sine';
+                    break;
+                case 'error':
+                    frequency = 150;
+                    duration = 0.1;
+                    type_osc = 'square';
+                    break;
+                default:
+                    return;
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = type_osc;
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
